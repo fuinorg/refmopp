@@ -9,4 +9,5 @@ JaMoPP: http://www.jamopp.org/
 
 Status/Changes:
 ---------------
-2012-12-02 - Unstable Maven Build - Needs small fix from 'reflections' to work.
+2012-12-02 - Unstable Maven Build - Needs small fix from 'reflections' to work
+             (See: http://code.google.com/p/reflections/issues/detail?id=136)
