@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
+import javax.lang.model.type.PrimitiveType;
 
 import org.eclipse.emf.common.notify.Notifier;
 import org.eclipse.emf.common.util.EList;
@@ -13,6 +14,7 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.emftext.language.java.annotations.AnnotationInstance;
+import org.emftext.language.java.classifiers.AnonymousClass;
 import org.emftext.language.java.classifiers.Class;
 import org.emftext.language.java.classifiers.Classifier;
 import org.emftext.language.java.classifiers.Interface;
@@ -33,6 +35,7 @@ import org.emftext.language.java.modifiers.Strictfp;
 import org.emftext.language.java.modifiers.Synchronized;
 import org.emftext.language.java.parameters.Parameter;
 import org.emftext.language.java.resource.JavaSourceOrClassFileResource;
+import org.emftext.language.java.types.Type;
 import org.emftext.language.java.types.TypeReference;
 import org.reflections.adapters.MetadataAdapter;
 import org.reflections.vfs.Vfs;
@@ -80,6 +83,11 @@ public class JamoppAdapter implements MetadataAdapter<Class, Field, Method> {
         } catch (Error e) {
             classFileCache = null;
         }
+    }
+
+    @Override
+    public boolean acceptsInput(String file) {
+        return file.endsWith(".java") || file.endsWith(".class");
     }
 
     @Override
@@ -190,8 +198,7 @@ public class JamoppAdapter implements MetadataAdapter<Class, Field, Method> {
 
     @Override
     public String getReturnTypeName(final Method method) {
-        // TODO Implement!
-        return null;
+        return getTypeName(method.getTypeReference().getTarget());
     }
 
     @Override
@@ -345,4 +352,40 @@ public class JamoppAdapter implements MetadataAdapter<Class, Field, Method> {
         throw new IllegalStateException("No JavaSourceOrClassFileResource: " + file);
     }
 
+    private String getTypeName(final Type type) {
+        if (type instanceof PrimitiveType) {
+            if (type instanceof org.emftext.language.java.types.Boolean) {
+                return "boolean";
+            } else if (type instanceof org.emftext.language.java.types.Byte) {
+                return "byte";
+            } else if (type instanceof org.emftext.language.java.types.Char) {
+                return "char";
+            } else if (type instanceof org.emftext.language.java.types.Double) {
+                return "double";
+            } else if (type instanceof org.emftext.language.java.types.Float) {
+                return "float";
+            } else if (type instanceof org.emftext.language.java.types.Int) {
+                return "int";
+            } else if (type instanceof org.emftext.language.java.types.Long) {
+                return "long";
+            } else if (type instanceof org.emftext.language.java.types.Short) {
+                return "short";
+            } else if (type instanceof org.emftext.language.java.types.Void) {
+                return "void";
+            }
+        } else if (type instanceof Classifier) {
+            final Classifier classifier = (Classifier) type;
+            final String name = getFullQualifiedName(classifier);
+            if (name.equals("java.lang.String")) {
+                return "String";
+            }
+            return name;
+        } else if (type instanceof AnonymousClass) {
+            final AnonymousClass clasz = (AnonymousClass) type;
+            // TODO Find better way to display anonymous class
+            return clasz.toString();
+        }
+        throw new IllegalStateException("Unknown type: " + type);
+    }
+    
 }
